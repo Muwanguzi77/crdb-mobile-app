@@ -1,0 +1,43 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.wso2_login">
+
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <application
+        tools:replace="android:label"
+        android:label="WSO2 Login"
+        android:icon="@mipmap/ic_launcher">
+
+
+        <activity
+            tools:replace="android:configChanges"
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:windowSoftInputMode="adjustResize">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+
+            <!-- 👇 This is the AppAuth redirect intent filter -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="${appAuthRedirectScheme}"
+                    android:host="oauth2redirect" />
+            </intent-filter>
+
+        </activity>
+
+    </application>
+
+</manifest>
