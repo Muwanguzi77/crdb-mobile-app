@@ -23,7 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _fetchAccountDetails() async {
-    final url = Uri.parse("http://10.0.2.2:8080/accountDetails");
+    final url = Uri.parse("http://172.20.10.2:8080/accountDetails");
 
     try {
       final response = await http.post(

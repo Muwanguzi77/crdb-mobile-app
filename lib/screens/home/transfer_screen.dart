@@ -18,7 +18,7 @@ class _TransferMoneyScreenState extends State<TransferMoneyScreen> {
   bool _isLoading = false;
 
   Future<void> _transferMoney() async {
-    final url = Uri.parse('http://10.0.2.2:8080/transfer');
+    final url = Uri.parse('http://172.20.10.2:8080/transfer');
     final body = jsonEncode({
       "src_acc_number": _sourceAccountController.text.trim(),
       "dest_acc_number": _destinationAccountController.text.trim(),

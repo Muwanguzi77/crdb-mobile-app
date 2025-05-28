@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:intl/intl.dart';
 
 class MiniStatementScreen extends StatefulWidget {
-  // final String token;
   final String accountNumber = '21417434250032';
-
-  // MiniStatementScreen({required this.token, required this.accountNumber});
 
   @override
   _MiniStatementScreenState createState() => _MiniStatementScreenState();
@@ -17,39 +15,35 @@ class _MiniStatementScreenState extends State<MiniStatementScreen> {
   List<dynamic> _transactions = [];
 
   Future<void> _fetchMiniStatement() async {
-    final url = Uri.parse("http://10.0.2.2:8080/ministatement");
-    final response = await http.post(
+    final url = Uri.parse("http://172.20.10.2:8080/ministatement");
+
+    try {
+      final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          "account_number": "21417434250032",
-        })
-    );
-    print("Raw Response Body: ${response.body}"); // 🔍 This logs the raw response
+          "account_number": widget.accountNumber,
+        }),
+      );
 
-    final List<dynamic> data = jsonDecode(response.body); // response is a list
+      final List<dynamic> data = jsonDecode(response.body);
 
-    setState(() {
-      _transactions = data;
-      _loading = false;
-    });
-    // final data = jsonDecode(response.body);
-    // setState(() {
-    //   _transactions = data['transactions'] ?? [];
-    //   _loading = false;
-    // });
-    // if (response.statusCode != 200) { //success scenario
-    //   final data = jsonDecode(response.body);
-    //   setState(() {
-    //     _transactions = data['transactions'] ?? [];
-    //     _loading = false;
-    //   });
-    // } else {
-    //   setState(() => _loading = false);
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //     SnackBar(content: Text('Failed to fetch mini statement')),
-    //   );
-    // }
+      data.sort((a, b) => b['transactionDateTime'].compareTo(a['transactionDateTime']));
+      final latest6 = data.take(6).toList();
+
+      setState(() {
+        _transactions = latest6;
+        _loading = false;
+      });
+    } catch (e) {
+      print("Error fetching mini statement: $e");
+      setState(() => _loading = false);
+    }
+  }
+
+  String formatDate(int timestamp) {
+    final date = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    return DateFormat('dd MMM yyyy, hh:mm a').format(date);
   }
 
   @override
@@ -61,30 +55,57 @@ class _MiniStatementScreenState extends State<MiniStatementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Mini Statement")),
+      appBar: AppBar(
+        title: const Text("Last 6 Transactions"),
+        backgroundColor: Colors.blue[800],
+      ),
       body: _loading
           ? Center(child: CircularProgressIndicator())
+          : _transactions.isEmpty
+          ? Center(child: Text("No transactions found."))
           : ListView.builder(
+        padding: const EdgeInsets.all(16),
         itemCount: _transactions.length,
         itemBuilder: (context, index) {
           final tx = _transactions[index];
+          final isCredit = tx['transactionType'] == 'CREDIT';
+
           return Card(
-            margin: EdgeInsets.all(10),
-            child: ListTile(
-              title: Text(
-                "Amount: UGX ${tx['creditAmount']}",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Column(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            elevation: 4,
+            margin: const EdgeInsets.only(bottom: 16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "Date: ${DateTime.fromMillisecondsSinceEpoch(tx['transactionDateTime']).toString()}",
-                    style: TextStyle(color: Colors.grey[600]),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        isCredit ? 'CREDIT' : 'DEBIT',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isCredit ? Colors.green : Colors.red,
+                        ),
+                      ),
+                      Text(
+                        formatDate(tx['transactionDateTime']),
+                        style: TextStyle(color: Colors.grey[700]),
+                      ),
+                    ],
                   ),
-                  Text("Type: ${tx['transactionType']}"),
-                  Text("Depositor Name: ${tx['depositorName']}"),
+                  SizedBox(height: 8),
+                  Text(
+                    "UGX ${tx['creditAmount'].toStringAsFixed(2)}",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 8),
                   Text("Narration: ${tx['transactionNarration']}"),
+                  Text("Depositor: ${tx['depositorName']}"),
+                  Text("Phone: ${tx['depositorPhoneNumber']}"),
+                  Text("Ref: ${tx['externalTranRefNum']}"),
                 ],
               ),
             ),
@@ -94,4 +115,3 @@ class _MiniStatementScreenState extends State<MiniStatementScreen> {
     );
   }
 }
-// TODO Implement this library.

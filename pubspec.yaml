@@ -1,4 +1,4 @@
-name: wso2_login
+name: Centenary
 description: Logging in With WSO2 IS
 
 # The following line prevents the package from being accidentally published to
@@ -40,6 +40,8 @@ dependencies:
   flutter_secure_storage: ^8.1.0
   jwt_decode: ^0.3.1
   http: ^0.13.5
+  shared_preferences: ^2.2.0
+  intl: ^0.18.1
 
 dev_dependencies:
   flutter_test:

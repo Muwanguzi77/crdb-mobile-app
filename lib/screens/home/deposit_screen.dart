@@ -27,7 +27,7 @@ class _DepositMoneyScreenState extends State<DepositMoneyScreen> {
   Future<void> _depositMoney() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _loading = true);
-      final url = Uri.parse("http://10.0.2.2:8080/deposit");
+      final url = Uri.parse("http://172.20.10.2:8080/deposit");
 
       final response = await http.post(
           url,

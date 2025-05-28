@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'taxpayer_profile_screen.dart';
 import 'screens/home/deposit_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/home/home_screen.dart';
@@ -34,12 +33,17 @@ class _LoginScreenState extends State<LoginScreen> {
   String _accessToken = '';
   bool _isAuthenticated = false;
 
+  // final String _clientId = 'y82yFckTUMGfINb5IN7PVm9zXSUa';
+  // final String _redirectUrl = 'wso2login://oauth2redirect';
+  // final String _issuer = 'https://10.173.78.232:9443/oauth2/token';
+  // final String _authorizationEndpoint = 'https://10.173.78.232:9443/oauth2/authorize';
+  // final String _tokenEndpoint = 'https://10.173.78.232:9443/oauth2/token';
+  //Below is the ip of my machine when connected to my iPhone
   final String _clientId = 'y82yFckTUMGfINb5IN7PVm9zXSUa';
-  final String _redirectUrl = 'https://www.centenarybank.co.ug/';
-  final String _issuer = 'https://10.173.78.232:9443/oauth2/token';
-  final String _authorizationEndpoint = 'https://10.173.78.232:9443/oauth2/authorize';
-  final String _tokenEndpoint = 'https://10.173.78.232:9443/oauth2/token';
-
+  final String _redirectUrl = 'wso2login://oauth2redirect';
+  final String _issuer = 'https://172.20.10.2:9443/oauth2/token';
+  final String _authorizationEndpoint = 'https://172.20.10.2:9443/oauth2/authorize';
+  final String _tokenEndpoint = 'https://172.20.10.2:9443/oauth2/token';
   Future<void> _authenticate() async {
     try {
       final AuthorizationTokenResponse? result =
@@ -55,6 +59,8 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
 
+      print("Printing result From WSO2");
+      print(result);
       if (result != null) {
         print("Logged In Successfully");
         setState(() {
@@ -62,9 +68,10 @@ class _LoginScreenState extends State<LoginScreen> {
           _isAuthenticated = true;
         });
 
-        Navigator.pushReplacement(
+        Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => TaxpayerProfileScreen()),
+          MaterialPageRoute(builder: (context) => HomeScreen()),
+              (Route<dynamic> route) => false, // removes all previous routes
         );
       }
     } catch (e) {
