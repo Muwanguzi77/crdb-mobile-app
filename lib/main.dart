@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:http/http.dart' as http;
+import 'package:uni_links/uni_links.dart';
+import 'dart:async';
 import 'dart:convert';
 import 'screens/home/deposit_screen.dart';
 import 'screens/auth/register_screen.dart';
@@ -19,7 +21,16 @@ class MyApp extends StatelessWidget {
       title: 'Centenary Bank',
       theme: ThemeData(primarySwatch: Colors.blue),
       home: LoginScreen(),
+      // home: _initialScreen(),
     );
+  }
+
+  Widget _initialScreen() {
+    //This
+    // if (_LoginScreenState.cachedAccessToken != null) {
+    //   return HomeScreen();
+    // }
+    return LoginScreen();
   }
 }
 
@@ -29,21 +40,54 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  static String? cachedAccessToken;
   final FlutterAppAuth _appAuth = FlutterAppAuth();
   String _accessToken = '';
   bool _isAuthenticated = false;
+  StreamSubscription? _sub;
 
-  // final String _clientId = 'y82yFckTUMGfINb5IN7PVm9zXSUa';
-  // final String _redirectUrl = 'wso2login://oauth2redirect';
-  // final String _issuer = 'https://10.173.78.232:9443/oauth2/token';
-  // final String _authorizationEndpoint = 'https://10.173.78.232:9443/oauth2/authorize';
-  // final String _tokenEndpoint = 'https://10.173.78.232:9443/oauth2/token';
-  //Below is the ip of my machine when connected to my iPhone
   final String _clientId = 'y82yFckTUMGfINb5IN7PVm9zXSUa';
-  final String _redirectUrl = 'wso2login://oauth2redirect';
-  final String _issuer = 'https://172.20.10.2:9443/oauth2/token';
-  final String _authorizationEndpoint = 'https://172.20.10.2:9443/oauth2/authorize';
-  final String _tokenEndpoint = 'https://172.20.10.2:9443/oauth2/token';
+  final String _redirectUrl = 'centenary://oauth2redirect/home';
+  final String _issuer = 'https://10.173.78.232:9443/oauth2/token';
+  final String _authorizationEndpoint = 'https://10.173.78.232:9443/oauth2/authorize';
+  final String _tokenEndpoint = 'https://10.173.78.232:9443/oauth2/token';
+
+  @override
+  void initState() {
+    super.initState();
+    _handleIncomingLinks();
+  }
+
+  void _handleIncomingLinks() { //to handle redirect to a specific screen
+    _sub = uriLinkStream.listen((Uri? uri) {
+      if (uri != null) {
+        final screen = uri.queryParameters['screen'] ?? (uri.pathSegments.isNotEmpty ? uri.pathSegments[0] : null);
+        print("Redirected to: \${uri.toString()} | Target screen: \$screen");
+
+        if (screen == 'home') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => HomeScreen()),
+          );
+        }
+        // else if (screen == 'deposit') {
+        //   Navigator.pushReplacement(
+        //     context,
+        //     MaterialPageRoute(builder: (context) => DepositScreen()),
+        //   );
+        // }
+      }
+    }, onError: (err) {
+      print('Failed to handle link: \$err');
+    });
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
+  }
+
   Future<void> _authenticate() async {
     try {
       final AuthorizationTokenResponse? result =
@@ -56,28 +100,26 @@ class _LoginScreenState extends State<LoginScreen> {
             tokenEndpoint: _tokenEndpoint,
           ),
           scopes: ['openid', 'profile', 'email'],
+          promptValues: ['login'], // 👈 Force reauthentication prompt
         ),
-      );
+      ).timeout(Duration(seconds: 200), onTimeout: () {
+        print("❌****** Timed out waiting for redirect!******");
+        return null;
+      });
 
-      print("Printing result From WSO2");
       print(result);
       if (result != null) {
-        print("Logged In Successfully");
         setState(() {
           _accessToken = result.accessToken!;
+          cachedAccessToken = _accessToken;
           _isAuthenticated = true;
         });
-
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => HomeScreen()),
-              (Route<dynamic> route) => false, // removes all previous routes
-        );
       }
     } catch (e) {
       print('Login Error: $e');
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -88,20 +130,17 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Background Image
           Image.asset(
             'assets/mapeera.jpg',
             fit: BoxFit.cover,
           ),
-
-          // Foreground Content
           Center(
             child: _isAuthenticated
                 ? Container(
               padding: const EdgeInsets.all(16.0),
               color: Colors.white.withOpacity(0.8),
               child: Text(
-                'Login Successful, Token: $_accessToken',
+                'Login Successful, Token: \$_accessToken',
                 style: const TextStyle(fontSize: 16),
               ),
             )
@@ -140,15 +179,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                     child: const Text("Don't have an account? Register"),
                   ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => HomeScreen()),
-                      );
-                    },
-                    child: const Text("Home"),
-                  ),
+                  // TextButton(
+                  //   onPressed: () {
+                  //     Navigator.push(
+                  //       context,
+                  //       MaterialPageRoute(builder: (_) => HomeScreen()),
+                  //     );
+                  //   },
+                  //   child: const Text("Home"),
+                  // ),
                 ],
               ),
             ),
@@ -157,5 +196,4 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-
 }

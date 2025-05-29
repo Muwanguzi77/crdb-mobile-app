@@ -10,17 +10,17 @@ class TransferMoneyScreen extends StatefulWidget {
 }
 
 class _TransferMoneyScreenState extends State<TransferMoneyScreen> {
-  final TextEditingController _sourceAccountController = TextEditingController();
   final TextEditingController _destinationAccountController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _narrationController = TextEditingController();
 
+  String? _selectedSourceAccount = "21417434250032"; // Predefined value
   bool _isLoading = false;
 
   Future<void> _transferMoney() async {
-    final url = Uri.parse('http://172.20.10.2:8080/transfer');
+    final url = Uri.parse('http://10.173.78.232:8080/transfer');
     final body = jsonEncode({
-      "src_acc_number": _sourceAccountController.text.trim(),
+      "src_acc_number": _selectedSourceAccount,
       "dest_acc_number": _destinationAccountController.text.trim(),
       "amount": int.parse(_amountController.text.trim()),
       "transaction_narration": _narrationController.text.trim(),
@@ -36,6 +36,7 @@ class _TransferMoneyScreenState extends State<TransferMoneyScreen> {
       );
 
       setState(() => _isLoading = false);
+
       final responseData = jsonDecode(response.body);
       showDialog(
         context: context,
@@ -45,7 +46,7 @@ class _TransferMoneyScreenState extends State<TransferMoneyScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog first
+                Navigator.of(context).pop(); // Close dialog
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (_) => HomeScreen()),
@@ -56,25 +57,6 @@ class _TransferMoneyScreenState extends State<TransferMoneyScreen> {
           ],
         ),
       );
-
-      // if (response.statusCode == 201) {
-      //   final responseData = jsonDecode(response.body);
-      //   showDialog(
-      //     context: context,
-      //     builder: (_) => AlertDialog(
-      //       title: Text('Success'),
-      //       content: Text(responseData['message']),
-      //       actions: [
-      //         TextButton(
-      //           onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
-      //           child: Text('OK'),
-      //         )
-      //       ],
-      //     ),
-      //   );
-      // } else {
-      //   throw Exception('Failed to transfer money');
-      // }
     } catch (e) {
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -92,10 +74,20 @@ class _TransferMoneyScreenState extends State<TransferMoneyScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextField(
-              controller: _sourceAccountController,
+            DropdownButtonFormField<String>(
+              value: _selectedSourceAccount,
+              items: ["21417434250032"]
+                  .map((acc) => DropdownMenuItem(
+                value: acc,
+                child: Text(acc),
+              ))
+                  .toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedSourceAccount = value;
+                });
+              },
               decoration: InputDecoration(labelText: 'Source Account Number'),
-              keyboardType: TextInputType.number,
             ),
             TextField(
               controller: _destinationAccountController,
@@ -120,7 +112,7 @@ class _TransferMoneyScreenState extends State<TransferMoneyScreen> {
                 onPressed: _transferMoney,
                 child: Text('Submit'),
               ),
-            )
+            ),
           ],
         ),
       ),

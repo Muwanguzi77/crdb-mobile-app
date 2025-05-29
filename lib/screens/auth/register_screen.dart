@@ -32,7 +32,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
 
       setState(() => _loading = true);
-      final url = Uri.parse("http://172.20.10.2:8080/createCustomer");
+      final url = Uri.parse("http://10.173.78.232:8080/createCustomer");
 
       final response = await http.post(
         url,

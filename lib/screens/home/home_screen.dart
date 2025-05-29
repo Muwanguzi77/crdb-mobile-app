@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
+
+import '../../main.dart';
 import 'deposit_screen.dart';
 import 'transfer_screen.dart';
 import 'ministatement_screen.dart';
@@ -23,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _fetchAccountDetails() async {
-    final url = Uri.parse("http://172.20.10.2:8080/accountDetails");
+    final url = Uri.parse("http://10.173.78.232:8080/accountDetails");
 
     try {
       final response = await http.post(
@@ -52,6 +53,17 @@ class _HomeScreenState extends State<HomeScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('An error occurred while fetching account details')),
       );
+    }
+  }
+
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) {
+      return 'Good Morning Andrew';
+    } else if (hour < 17) {
+      return 'Good Afternoon Andrew';
+    } else {
+      return 'Good Evening Andrew';
     }
   }
 
@@ -101,17 +113,46 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: TextStyle(fontSize: 16, color: Colors.grey[700])),
             SizedBox(height: 4),
             Text("UGX ${accountBalance.toStringAsFixed(2)}",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.green[700])),
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green[700])),
           ],
         ),
       ),
     );
   }
 
+  void _logout() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => LoginScreen()),
+          (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Home")),
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // const Text("Home"),
+            Text(
+              _getGreeting(),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            tooltip: 'Logout',
+            onPressed: _logout,
+          ),
+        ],
+      ),
       body: loading
           ? Center(child: CircularProgressIndicator())
           : Padding(

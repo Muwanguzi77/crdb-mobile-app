@@ -51,7 +51,7 @@ android {
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
-        manifestPlaceholders = [appAuthRedirectScheme: "wso2login", applicationName: "io.flutter.app.FlutterApplication"]
+        manifestPlaceholders = [appAuthRedirectScheme: "centenary", applicationName: "io.flutter.app.FlutterApplication"]
     }
 
     buildTypes {

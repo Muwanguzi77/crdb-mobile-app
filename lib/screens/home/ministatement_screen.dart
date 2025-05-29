@@ -15,7 +15,7 @@ class _MiniStatementScreenState extends State<MiniStatementScreen> {
   List<dynamic> _transactions = [];
 
   Future<void> _fetchMiniStatement() async {
-    final url = Uri.parse("http://172.20.10.2:8080/ministatement");
+    final url = Uri.parse("http://10.173.78.232:8080/ministatement");
 
     try {
       final response = await http.post(
